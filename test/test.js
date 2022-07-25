@@ -1,4 +1,4 @@
-const Promise  = require('./index')
+const Promise  = require('../index')
 new Promise((res,rej)=>{
     res('success')
     setTimeout(()=>{

@@ -129,6 +129,93 @@ class Promise {
             resolve(x)
         }
     }
+
+    static resolve(value) {
+        return new Promise((resolve, reject) => {
+            if (value instanceof Promise) {
+                value.then(resolve, reject)
+            } else {
+                resolve(value)
+            }
+        })
+    }
+
+    static reject(reason) {
+        return new Promise((_, reject) => {
+            reject(reason)
+        })
+    }
+
+    // 当所有promise是resolved 或者有一个rejected才结束
+    static all(promises) {
+        const res = []
+        return new Promise((resolve, reject) => {
+            promises.forEach((promise, index) => {
+                promise.then(value => {
+                    res[index] = value
+                    if (res.length === promises.length) {
+                        resolve(res)
+                    }
+                }, reject)
+            })
+        })
+    }
+
+    // 所有promise有值
+    static allSettled(promises){
+        const res = []
+        return new Promise((resolve,reject)=>{
+            function isSuccess() {
+                if (res.length === promises.length) {
+                    resolve(res)
+                }
+            }
+            promises.forEach((item, index) => {
+                Promise.resolve(item).then(value => {
+                    res[index] = {
+                        status: 'fulfilled',
+                        value
+                    }
+                    isSuccess()
+                }, reason => {
+                    res[index] = {
+                        status: 'rejected',
+                        reason
+                    }
+                    isSuccess()
+                })
+            })
+        })
+    }
+
+    // 一个promise有值 不管成功失败
+    static race(promises){
+        return new Promise((resolve,reject)=>{
+            promises.forEach(promise=>{
+                Promise.resolve(promise).then(resolve,reject)
+            })
+        })
+    }
+
+    // 一个promise成功 或者全部失败就抛错AggregateError: All promises were rejected
+
+    static any(promises){
+        const errs = []
+        return new Promise((resolve,reject)=>{
+            promises.forEach((promise,index)=>{
+                Promise.resolve(promise).then(resolve,reason=>{
+                    errs[index] = reason
+                    if (errs.length === promises.length) {
+                        // reject('失败了')
+                        // nodejs 不支持
+                        reject(AggregateError([
+                            new Error("All promises were rejected")
+                        ], 'All promises were rejected'))
+                    }
+                })
+            })
+        })
+    }
 }
 
 module.exports = Promise
