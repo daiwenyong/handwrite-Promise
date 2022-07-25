@@ -130,6 +130,20 @@ class Promise {
         }
     }
 
+    catch (onRejected) {
+        this.then(null,onRejected)
+    }
+
+    finally(fn) {
+        return this.then(value => {
+            fn()
+            return value
+        }, reason => {
+            fn()
+            return reason
+        })
+    }
+
     static resolve(value) {
         return new Promise((resolve, reject) => {
             if (value instanceof Promise) {
