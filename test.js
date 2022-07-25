@@ -1,13 +1,18 @@
 const Promise  = require('./index')
 new Promise((res,rej)=>{
-    console.log(1)
+    res('success')
     setTimeout(()=>{
-        rej('err')
-        // res('success')
+        // rej('err')
+        res('success')
     },500)
 })
 .then(res =>{
-    console.log('res',res)
+    return new Promise((res,rej)=>{
+        res(1)
+    })
 },rej=>{
     console.log("-> rej", rej);
+})
+.then(res=>{
+    console.log('res2',res)
 })
