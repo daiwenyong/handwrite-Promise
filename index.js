@@ -49,50 +49,41 @@ class Promise {
                 throw error
             }
         }
+
+
         const promise2 = new Promise((resolve, reject) => {
 
+            const handleResolve = ()=>{
+                try {
+                    const x = onFulfilled(this.value)
+                    this.resolvePromise(promise2, x, resolve, reject)
+                } catch (e) {
+                    reject(e)
+                }
+            }
+            const handleReject = ()=>{
+                try {
+                    const x = onRejected(this.reason)
+                    this.resolvePromise(promise2, x, resolve, reject)
+                } catch (e) {
+                    reject(e)
+                }
+            }
+
             if (this.status === Promise.FULFILLED) {
-                queueMicrotask(() => {
-                    try {
-                        const x = onFulfilled(this.value)
-                        this.resolvePromise(promise2, x, resolve, reject)
-                    } catch (e) {
-                        reject(e)
-                    }
-                })
+                queueMicrotask(handleResolve)
             }
             if (this.status === Promise.REJECTED) {
-                queueMicrotask(() => {
-                    try {
-                        const x = onRejected(this.reason)
-                        this.resolvePromise(promise2, x, resolve, reject)
-                    } catch (error) {
-                        reject(error)
-                    }
-                })
+                queueMicrotask(handleReject)
             }
 
             if (this.isPending()) {
                 this.callbacks.push({
                     onFulfilled: () => {
-                        queueMicrotask(() => {
-                            try {
-                                const x = onFulfilled(this.value)
-                                this.resolvePromise(promise2, x, resolve, reject)
-                            } catch (e) {
-                                reject(e)
-                            }
-                        })
+                        queueMicrotask(handleResolve)
                     },
                     onRejected: () => {
-                        queueMicrotask(() => {
-                            try {
-                                const x = onRejected(this.reason)
-                                this.resolvePromise(promise2, x, resolve, reject)
-                            } catch (e) {
-                                reject(e)
-                            }
-                        })
+                        queueMicrotask(handleReject)
                     }
                 })
             }
